@@ -1,11 +1,12 @@
 // Chat application similar to Claude or GPT using Chakra UI
-import { Box, VStack, Text, Input, Button, useToast } from "@chakra-ui/react";
+import { Box, VStack, Text, Input, Button, useToast, Spinner } from "@chakra-ui/react";
 import { FaPaperPlane } from "react-icons/fa";
 import { useState } from "react";
 
 const Index = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const toast = useToast();
 
   const handleSendMessage = () => {
@@ -22,10 +23,14 @@ const Index = () => {
       setMessages([...messages, { text: inputValue, sender: "user" }]);
     } else {
       const fileReader = new FileReader();
-      fileReader.onload = (e) => {
-        setMessages([...messages, { text: e.target.result, sender: "user", type: "file" }]);
-      };
-      fileReader.readAsDataURL(inputValue);
+      setIsAnalyzing(true);
+      setTimeout(() => {
+        fileReader.onload = (e) => {
+          setMessages([...messages, { text: e.target.result, sender: "user", type: "file" }]);
+          setIsAnalyzing(false);
+        };
+        fileReader.readAsDataURL(inputValue);
+      }, 2000);
     }
     setInputValue("");
 
@@ -47,7 +52,7 @@ const Index = () => {
           </Box>
         ))}
       </Box>
-      <Input placeholder="Type your message here..." value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyPress={(e) => e.key === "Enter" && handleSendMessage()} />
+      {isAnalyzing ? <Spinner size="xl" /> : <Input placeholder="Type your message here..." value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyPress={(e) => e.key === "Enter" && handleSendMessage()} />}
       <Input type="file" onChange={(e) => setInputValue(e.target.files[0])} />
       <Button rightIcon={<FaPaperPlane />} colorScheme="teal" onClick={() => handleSendMessage(inputValue instanceof File ? "file" : "text")}>
         Send
